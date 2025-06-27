@@ -2,108 +2,104 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Escáner de Código QR</title>
+  <title>Escáner QR para Menú</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body {
       margin: 0;
       padding: 0;
       background: linear-gradient(to right, #4e54c8, #8f94fb);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: flex-start;
       min-height: 100vh;
-      justify-content: center;
+      padding-top: 2rem;
     }
 
     h1 {
-      text-align: center;
       margin-bottom: 1rem;
     }
 
     #reader {
       width: 100%;
-      max-width: 400px;
-      margin: auto;
-      border-radius: 10px;
+      max-width: 320px;
+      margin-top: 1rem;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      background: #fff;
+      background-color: #fff;
     }
 
     #resultado {
-      margin-top: 20px;
-      font-weight: bold;
+      margin-top: 1rem;
       font-size: 1.1rem;
-      color: #fff;
       background-color: rgba(0, 0, 0, 0.2);
       padding: 10px 20px;
-      border-radius: 8px;
-      word-wrap: break-word;
+      border-radius: 10px;
       max-width: 90%;
+      word-break: break-word;
     }
 
-    @media screen and (max-width: 480px) {
-      h1 {
-        font-size: 1.5rem;
-      }
+    button {
+      background: #fff;
+      color: #4e54c8;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 1rem;
+    }
 
-      #resultado {
-        font-size: 1rem;
-      }
+    button:hover {
+      background: #e0e0ff;
     }
   </style>
 </head>
 <body>
 
   <h1>📷 Escanea tu menú</h1>
-  <div id="reader"></div>
+  <button onclick="iniciarEscaneo()">📡 Iniciar escaneo</button>
+  <div id="reader" style="display:none;"></div>
   <div id="resultado">Esperando escaneo...</div>
 
   <script>
     const resultado = document.getElementById('resultado');
+    const readerDiv = document.getElementById('reader');
+    const html5QrCode = new Html5Qrcode("reader");
 
-    function onScanSuccess(decodedText, decodedResult) {
-      // Detener escáner luego de escanear
-      html5QrcodeScanner.clear().then(() => {
-        resultado.innerText = `✅ Escaneado: ${decodedText}`;
-        if (decodedText.startsWith("http")) {
-          // Redirige después de 1.5 segundos
-          setTimeout(() => {
-            window.location.href = decodedText;
-          }, 1500);
+    function iniciarEscaneo() {
+      Html5Qrcode.getCameras().then(cameras => {
+        if (cameras && cameras.length) {
+          // Buscar cámara trasera si existe
+          const camaraTrasera = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0];
+
+          readerDiv.style.display = "block";
+          html5QrCode.start(
+            camaraTrasera.id,
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            qrCodeMessage => {
+              resultado.innerText = `✅ Escaneado: ${qrCodeMessage}`;
+              html5QrCode.stop().then(() => {
+                if (qrCodeMessage.startsWith("http")) {
+                  setTimeout(() => window.location.href = qrCodeMessage, 1500);
+                }
+              });
+            },
+            errorMessage => {
+              // Puedes mostrar el error o ignorarlo
+            }
+          );
         }
       }).catch(err => {
-        console.error("Error al limpiar el lector", err);
+        resultado.innerText = "❌ Error accediendo a la cámara";
+        console.error(err);
       });
     }
-
-    const html5QrcodeScanner = new Html5QrcodeScanner("reader", {
-      fps: 10,
-      qrbox: { width: 250, height: 250 },
-      experimentalFeatures: {
-        useBarCodeDetectorIfSupported: true
-      },
-      rememberLastUsedCamera: true
-    }, /* verbose= */ false);
-
-    html5QrcodeScanner.render(onScanSuccess);
-
-    // Forzar cámara trasera al inicio
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length > 1) {
-        html5QrcodeScanner.clear().then(() => {
-          const backCam = devices.find(device => device.label.toLowerCase().includes('back'));
-          html5QrcodeScanner.start(backCam ? backCam.id : devices[0].id, {
-            fps: 10,
-            qrbox: 250
-          }, onScanSuccess);
-        });
-      }
-    });
   </script>
 
 </body>

@@ -2,52 +2,108 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Lector de QR</title>
+  <title>Escáner de Código QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #4e54c8, #8f94fb);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      justify-content: center;
+    }
+
+    h1 {
       text-align: center;
-      padding: 2rem;
+      margin-bottom: 1rem;
     }
+
     #reader {
-      width: 300px;
+      width: 100%;
+      max-width: 400px;
       margin: auto;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      background: #fff;
     }
+
     #resultado {
       margin-top: 20px;
       font-weight: bold;
-      font-size: 1.2rem;
-      color: green;
+      font-size: 1.1rem;
+      color: #fff;
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 10px 20px;
+      border-radius: 8px;
+      word-wrap: break-word;
+      max-width: 90%;
+    }
+
+    @media screen and (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      #resultado {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
 
-  <h1>Escanea un Código QR</h1>
+  <h1>📷 Escanea tu menú</h1>
   <div id="reader"></div>
-  <div id="resultado"></div>
+  <div id="resultado">Esperando escaneo...</div>
 
   <script>
     const resultado = document.getElementById('resultado');
 
     function onScanSuccess(decodedText, decodedResult) {
-      // Detener el escáner después de leer 1 código
+      // Detener escáner luego de escanear
       html5QrcodeScanner.clear().then(() => {
-        resultado.innerText = `Contenido QR: ${decodedText}`;
-        // Si el QR es un link, redirecciona:
+        resultado.innerText = `✅ Escaneado: ${decodedText}`;
         if (decodedText.startsWith("http")) {
-          window.location.href = decodedText;
+          // Redirige después de 1.5 segundos
+          setTimeout(() => {
+            window.location.href = decodedText;
+          }, 1500);
         }
       }).catch(err => {
-        console.error('Error limpiando el escáner', err);
+        console.error("Error al limpiar el lector", err);
       });
     }
 
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-      "reader", { fps: 10, qrbox: 250 }
-    );
+    const html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+      fps: 10,
+      qrbox: { width: 250, height: 250 },
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true
+      },
+      rememberLastUsedCamera: true
+    }, /* verbose= */ false);
+
     html5QrcodeScanner.render(onScanSuccess);
+
+    // Forzar cámara trasera al inicio
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length > 1) {
+        html5QrcodeScanner.clear().then(() => {
+          const backCam = devices.find(device => device.label.toLowerCase().includes('back'));
+          html5QrcodeScanner.start(backCam ? backCam.id : devices[0].id, {
+            fps: 10,
+            qrbox: 250
+          }, onScanSuccess);
+        });
+      }
+    });
   </script>
 
 </body>

@@ -1,0 +1,42 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.element {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    background: yellow;
+    margin: 80px auto;
+    transform: rotate(-45deg);
+    border-radius: 500px 10000px 2000px 20000px;
+    border-bottom-color: aqua;
+    border: 2px solid black;
+    animation: mover 2s infinite alternate ease-in-out;
+}
+
+.element:hover{
+    
+}
+
+
+
+
+.element2 {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    background: rgb(9, 253, 62);
+    margin: 80px auto;
+border-bottom-color: aqua;
+border: 2px solid black;
+transform: rotate(120g);
+}
+
+
+
+body{
+    background-color: red;
+}
+

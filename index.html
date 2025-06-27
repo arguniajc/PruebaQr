@@ -23,7 +23,7 @@
       font-family: 'Rubik', sans-serif;
       background: var(--bg);
       color: var(--text);
-      padding-bottom: 120px;
+      padding-bottom: 160px;
     }
 
     header {
@@ -104,7 +104,6 @@
       background: #0f9f0f;
     }
 
-    /* Carrito flotante */
     .cart {
       position: fixed;
       bottom: 0;
@@ -114,6 +113,7 @@
       border-top: 2px solid #ddd;
       padding: 1rem;
       box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 100;
     }
 
     .cart h2 {
@@ -133,6 +133,13 @@
       border-bottom: 1px dashed #ccc;
       padding: 4px 0;
       font-size: 0.9rem;
+    }
+
+    .cart-total {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      text-align: right;
+      font-size: 1rem;
     }
 
     .cart button {
@@ -164,7 +171,7 @@
   </header>
 
   <div class="menu-container" id="menu">
-    <!-- Los productos se insertan aquí con JS -->
+    <!-- Productos agregados con JavaScript -->
   </div>
 
   <div class="cart">
@@ -172,6 +179,7 @@
     <div class="cart-items" id="cart-items">
       <em>No has agregado nada aún.</em>
     </div>
+    <div class="cart-total" id="cart-total">Total: $0</div>
     <button onclick="enviarPedido()">📤 Enviar Pedido</button>
   </div>
 
@@ -187,6 +195,7 @@
 
     const menu = document.getElementById("menu");
     const cartItems = document.getElementById("cart-items");
+    const cartTotal = document.getElementById("cart-total");
     const carrito = [];
 
     function renderMenu() {
@@ -215,15 +224,21 @@
     function actualizarCarrito() {
       if (carrito.length === 0) {
         cartItems.innerHTML = "<em>No has agregado nada aún.</em>";
+        cartTotal.textContent = "Total: $0";
         return;
       }
 
       cartItems.innerHTML = "";
+      let total = 0;
+
       carrito.forEach((item, i) => {
         const div = document.createElement("div");
         div.innerHTML = `<span>${item.nombre}</span><span>$${item.precio.toLocaleString()}</span>`;
         cartItems.appendChild(div);
+        total += item.precio;
       });
+
+      cartTotal.textContent = `Total: $${total.toLocaleString()}`;
     }
 
     function enviarPedido() {
@@ -240,7 +255,9 @@
       });
       mensaje += `\n💰 *Total:* $${total.toLocaleString()}`;
 
-      const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+      // Número de WhatsApp con indicativo (Colombia: 57)
+      const telefono = "573147184115";
+      const url = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
       window.open(url, "_blank");
     }
 

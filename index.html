@@ -1,114 +1,120 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>TuPedido – Escáner QR para Menú</title>
+  <meta charset="UTF-8" />
+  <title>TuProyecto – Lector de Placas</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
-      background: linear-gradient(to right, #e66114, #14c014);
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: 'Segoe UI', sans-serif;
-      color: #fff;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
+      text-align: center;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding-top: 2rem;
+      padding: 1.5rem;
     }
 
     h1 {
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
       font-size: 2rem;
     }
 
-    #reader {
+    p {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      opacity: 0.85;
+    }
+
+    video, canvas {
       width: 100%;
-      max-width: 320px;
-      margin-top: 1rem;
-      border-radius: 12px;
-      overflow: hidden;
-      background-color: #fff;
+      max-width: 400px;
+      border-radius: 10px;
+      margin: 1rem auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    button {
+      background: #14c014;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background: #10a110;
     }
 
     #resultado {
       margin-top: 1rem;
-      font-size: 1.1rem;
-      background-color: rgba(0, 0, 0, 0.2);
-      padding: 10px 20px;
-      border-radius: 10px;
-      max-width: 90%;
-      word-break: break-word;
-    }
-
-    button {
-      background: #fff;
-      color: #03030e;
-      border: none;
-      padding: 10px 20px;
       font-size: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
       border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-      margin-top: 1rem;
+      word-wrap: break-word;
     }
 
-    button:hover {
-      background: #e0e0ff;
-    }
-
-    @media screen and (max-width: 480px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-
-      #resultado {
-        font-size: 1rem;
-      }
+    footer {
+      margin-top: auto;
+      font-size: 0.85rem;
+      padding-top: 1.5rem;
+      opacity: 0.6;
     }
   </style>
 </head>
 <body>
 
-  <h1>📷 TuPedido: Escanea tu menú</h1>
-  <button onclick="iniciarEscaneo()">📡 Iniciar escaneo</button>
-  <div id="reader" style="display:none;"></div>
-  <div id="resultado">Esperando escaneo...</div>
+  <h1>📸 Lector de Placas</h1>
+  <p>Apunta la cámara trasera a la placa de un vehículo y presiona capturar</p>
+
+  <video id="video" autoplay playsinline></video>
+  <button onclick="capturar()">📷 Capturar</button>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <div id="resultado">Esperando captura...</div>
+
+  <footer>© 2025 TuProyecto – OCR de Placas</footer>
 
   <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
     const resultado = document.getElementById('resultado');
-    const readerDiv = document.getElementById('reader');
-    const html5QrCode = new Html5Qrcode("reader");
 
-    function iniciarEscaneo() {
-      Html5Qrcode.getCameras().then(cameras => {
-        if (cameras && cameras.length) {
-          const camaraTrasera = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0];
+    // Activar cámara trasera
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+      audio: false
+    }).then(stream => {
+      video.srcObject = stream;
+    }).catch(err => {
+      resultado.innerText = "❌ Error al acceder a la cámara";
+      console.error(err);
+    });
 
-          readerDiv.style.display = "block";
+    function capturar() {
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          html5QrCode.start(
-            camaraTrasera.id,
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            qrCodeMessage => {
-              resultado.innerText = `✅ Escaneado: ${qrCodeMessage}`;
-              html5QrCode.stop().then(() => {
-                // Redirigir inmediatamente si es un link
-                if (qrCodeMessage.startsWith("http")) {
-                  window.location.href = qrCodeMessage;
-                }
-              });
-            },
-            errorMessage => {
-              // Error silencioso al no encontrar código
-            }
-          );
-        }
+      resultado.innerText = "⏳ Leyendo texto...";
+
+      Tesseract.recognize(canvas, 'eng').then(({ data: { text } }) => {
+        resultado.innerHTML = `✅ Texto detectado:<br><strong>${text.trim()}</strong>`;
       }).catch(err => {
-        resultado.innerText = "❌ Error accediendo a la cámara";
+        resultado.innerText = "❌ No se pudo leer el texto.";
         console.error(err);
       });
     }

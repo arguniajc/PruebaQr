@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Escáner QR para Menú</title>
+  <title>TuPedido – Escáner QR para Menú</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
@@ -22,6 +22,7 @@
 
     h1 {
       margin-bottom: 1rem;
+      font-size: 2rem;
     }
 
     #reader {
@@ -58,11 +59,21 @@
     button:hover {
       background: #e0e0ff;
     }
+
+    @media screen and (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      #resultado {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <h1>📷 Escanea tu menú</h1>
+  <h1>📷 TuPedido: Escanea tu menú</h1>
   <button onclick="iniciarEscaneo()">📡 Iniciar escaneo</button>
   <div id="reader" style="display:none;"></div>
   <div id="resultado">Esperando escaneo...</div>
@@ -75,23 +86,24 @@
     function iniciarEscaneo() {
       Html5Qrcode.getCameras().then(cameras => {
         if (cameras && cameras.length) {
-          // Buscar cámara trasera si existe
           const camaraTrasera = cameras.find(c => c.label.toLowerCase().includes('back')) || cameras[0];
 
           readerDiv.style.display = "block";
+
           html5QrCode.start(
             camaraTrasera.id,
             { fps: 10, qrbox: { width: 250, height: 250 } },
             qrCodeMessage => {
               resultado.innerText = `✅ Escaneado: ${qrCodeMessage}`;
               html5QrCode.stop().then(() => {
+                // Redirigir inmediatamente si es un link
                 if (qrCodeMessage.startsWith("http")) {
-                  setTimeout(() => window.location.href = qrCodeMessage, 1500);
+                  window.location.href = qrCodeMessage;
                 }
               });
             },
             errorMessage => {
-              // Puedes mostrar el error o ignorarlo
+              // Error silencioso al no encontrar código
             }
           );
         }

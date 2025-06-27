@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Panel de Pedidos – TuPedido</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #e66114;
+      --secondary: #14c014;
+      --bg: #fefefe;
+      --text: #333;
+      --gray: #f0f0f0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Rubik', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1rem;
+    }
+
+    header {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      border-radius: 12px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+    }
+
+    .pedido {
+      background: white;
+      border: 2px solid var(--gray);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .pedido h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .pedido ul {
+      list-style: none;
+      margin-bottom: 1rem;
+    }
+
+    .pedido ul li {
+      padding: 4px 0;
+      border-bottom: 1px dashed #ccc;
+    }
+
+    .estado {
+      margin-bottom: 0.5rem;
+    }
+
+    .estado span {
+      font-weight: bold;
+    }
+
+    .estado.Pendiente span {
+      color: red;
+    }
+
+    .estado.Preparando span {
+      color: orange;
+    }
+
+    .estado.Finalizado span {
+      color: green;
+    }
+
+    .botones button {
+      margin-right: 10px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .pendiente {
+      background-color: red;
+      color: white;
+    }
+
+    .preparando {
+      background-color: orange;
+      color: white;
+    }
+
+    .finalizado {
+      background-color: green;
+      color: white;
+    }
+
+    @media (max-width: 600px) {
+      .pedido h2 {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🧾 Pedidos en Cocina – TuPedido</h1>
+  </header>
+
+  <div id="listaPedidos"></div>
+
+  <script>
+    const pedidos = [
+      {
+        mesa: "Mesa 1",
+        productos: ["Hamburguesa Clásica", "Gaseosa 400ml"],
+        estado: "Pendiente"
+      },
+      {
+        mesa: "Mesa 3",
+        productos: ["Salchipapas", "Arepa Rellena", "Gaseosa 400ml"],
+        estado: "Preparando"
+      },
+      {
+        mesa: "Mesa 5",
+        productos: ["Pizza Personal"],
+        estado: "Finalizado"
+      }
+    ];
+
+    const listaPedidos = document.getElementById("listaPedidos");
+
+    function renderPedidos() {
+      listaPedidos.innerHTML = "";
+      pedidos.forEach((pedido, index) => {
+        const div = document.createElement("div");
+        div.className = "pedido";
+
+        div.innerHTML = `
+          <h2>🪑 ${pedido.mesa}</h2>
+          <ul>
+            ${pedido.productos.map(p => `<li>${p}</li>`).join("")}
+          </ul>
+          <div class="estado ${pedido.estado}">
+            Estado: <span>${pedido.estado}</span>
+          </div>
+          <div class="botones">
+            <button class="pendiente" onclick="cambiarEstado(${index}, 'Pendiente')">Pendiente</button>
+            <button class="preparando" onclick="cambiarEstado(${index}, 'Preparando')">Preparando</button>
+            <button class="finalizado" onclick="cambiarEstado(${index}, 'Finalizado')">Finalizado</button>
+          </div>
+        `;
+        listaPedidos.appendChild(div);
+      });
+    }
+
+    function cambiarEstado(index, nuevoEstado) {
+      pedidos[index].estado = nuevoEstado;
+      renderPedidos();
+    }
+
+    renderPedidos();
+  </script>
+
+</body>
+</html>
